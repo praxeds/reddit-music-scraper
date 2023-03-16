@@ -1,9 +1,10 @@
 defmodule RedditMusicScraper do
   alias RedditMusicScraper.Spotify
   alias RedditMusicScraper.Reddit
+  alias RedditMusicScraper.Youtube
 
   # Tem que pedir auth e access token primeiro
-  def playlist(
+  def spotify_playlist(
         subreddit \\ "https://old.reddit.com/r/80smusic/",
         pages,
         playlist_title,
@@ -30,6 +31,29 @@ defmodule RedditMusicScraper do
       {:ok, playlist_id} ->
         # Adding songs to playlist
         Spotify.add_tracks(playlist_id, songs)
+
+      {:error, _} ->
+        {:error, "Failed to create playlist"}
+    end
+  end
+
+  def youtube_playlist(
+        subreddit \\ "https://old.reddit.com/r/truecitypop/",
+        pages,
+        playlist_title,
+        playlist_description \\ "",
+        tags \\ [],
+        public \\ true
+      ) do
+    # Creating playlist
+    case Youtube.create_playlist(playlist_title, playlist_description, tags, public) do
+      {:ok, playlist_id} ->
+        # Fetching songs from subreddit
+
+        Reddit.fetch_video_ids(subreddit, pages)
+        |> Enum.map(fn track ->
+          Youtube.add_video(playlist_id, track)
+        end)
 
       {:error, _} ->
         {:error, "Failed to create playlist"}

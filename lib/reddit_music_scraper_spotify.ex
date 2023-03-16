@@ -105,18 +105,18 @@ defmodule RedditMusicScraper.Spotify do
   end
 
   defp scopes do
-    Application.get_env(:reddit_music_scraper, :scopes)
+    Application.get_env(:reddit_music_scraper, :spotify_scopes)
     |> Enum.join(" ")
     |> URI.encode()
   end
 
   defp callback_url do
-    Application.get_env(:reddit_music_scraper, :callback_url) |> URI.encode_www_form()
+    Application.get_env(:reddit_music_scraper, :spotify_callback_url) |> URI.encode_www_form()
   end
 
-  defp client_id, do: Application.get_env(:reddit_music_scraper, :client_id)
+  defp client_id, do: Application.get_env(:reddit_music_scraper, :spotify_client_id)
 
-  defp user_id, do: Application.get_env(:reddit_music_scraper, :user_id)
+  defp user_id, do: Application.get_env(:reddit_music_scraper, :spotify_user_id)
 
-  defp client_secret, do: Application.get_env(:reddit_music_scraper, :client_secret)
+  defp client_secret, do: Application.get_env(:reddit_music_scraper, :spotify_client_secret)
 end

@@ -68,31 +68,40 @@ defmodule RedditMusicScraper.Reddit do
   end
 
   # Pra ser usado com YouTube
+  def fetch_video_ids(url, pages) do
+    IO.puts("🎧")
+    IO.puts("=======================================")
 
-  # def fetch_songs_urls(url, pages) do
-  #   IO.puts("🎧")
-  #   IO.puts("=======================================")
+    # Adds the first page to the list of pages
+    pages = [url] ++ fetch_next_pages(url, pages)
 
-  #   # Adds the first page to the list of pages
-  #   pages = [url] ++ fetch_next_pages(url, pages)
+    pages
+    |> Enum.map(fn url ->
+      case HTTPoison.get(url) do
+        {:ok, %HTTPoison.Response{body: body}} ->
+          {:ok, document_content} = Floki.parse_document(body)
 
-  #   pages
-  #   |> Enum.map(fn url ->
-  #     case HTTPoison.get(url) do
-  #       {:ok, %HTTPoison.Response{body: body}} ->
-  #         {:ok, document_content} = Floki.parse_document(body)
+          songs =
+            document_content
+            |> Floki.find("a.title")
+            |> Floki.attribute("data-href-url")
+            # Filter out non-youtube links
+            |> Enum.filter(fn url -> String.contains?(url, "youtu") end)
+            |> Enum.map(fn url ->
+              case Regex.run(
+                     ~r/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([\w-]+)/,
+                     url
+                   ) do
+                [_, video_id] -> video_id
+                _ -> nil
+              end
+            end)
+            |> Enum.filter(&(&1 != nil))
 
-  #         songs =
-  #           document_content
-  #           |> Floki.find("a.title")
-  #           |> Floki.attribute("data-href-url")
-  #           # Filter out non-youtube links
-  #           |> Enum.filter(fn url -> String.contains?(url, "youtu") end)
-
-  #         {:ok, songs}
-  #     end
-  #   end)
-  #   # concats all the songs into a single list
-  #   |> Enum.reduce([], fn {:ok, songs}, song_list -> songs ++ song_list end)
-  # end
+          {:ok, songs}
+      end
+    end)
+    # concats all the songs into a single list
+    |> Enum.reduce([], fn {:ok, songs}, song_list -> songs ++ song_list end)
+  end
 end
